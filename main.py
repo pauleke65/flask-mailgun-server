@@ -1,9 +1,12 @@
 import os
 
 import requests
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
+app.debug = True
 
 
 @app.route("/")
@@ -24,20 +27,27 @@ def getpic():
     MG_API_KEY = os.getenv("MG_API_KEY")
     MG_HOST = os.getenv("MG_HOST")
 
-    return requests.post(
+    returned = requests.post(
         f"{MG_HOST}/messages",
         auth=("api", MG_API_KEY),
         data={
-            "from": f"{name} <{email}>",
-            "to": [email, usermail],
+            "from": f"{name} <{usermail}>",
+            "to": [usermail],
             "subject": subject,
             "html": f"""
-            <h4> Email from ${name} ${email} </h4>
+            <h4> Email from {name} {email} </h4>
             <p> Phone Number: {mobile}
-            <p> ${message}</p>
+            <p> {message}</p>
             """,
         },
     )
+
+    print(returned.text)
+    print(returned)
+    print(returned.reason)
+    print(returned.status_code)
+
+    return Response(returned.reason, returned.status_code)
 
 
 if __name__ == "__main__":
